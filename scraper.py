@@ -32,6 +32,7 @@ def is_valid(url):
     )
     
     
+    
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
