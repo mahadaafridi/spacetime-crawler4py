@@ -1,12 +1,15 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup as Bs
+from typing import List
+import time
 
 def scraper(url, resp):
+    time.sleep(.5)
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
-def extract_next_links(url, resp):
+def extract_next_links(url, resp) -> List[str]:
     # Implementation required.
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
@@ -16,8 +19,28 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+
+    if resp.status != 200:
+        print(f"error is {resp.error}")
+        return []
     
-    return list()
+    soup = Bs(resp.raw_response.content, 'html.parser')
+    all_links = []
+
+    links = soup.find_all('a', href=True)
+
+    for tag in links:
+        href = tag['href']
+
+        #join urls
+        absolute_url = urljoin(resp.url, href)
+
+        #take away fragment
+        defragmented_url, _ = urldefrag(absolute_url)
+
+        all_links.append(defragmented_url)
+
+    return all_links
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -84,5 +107,5 @@ def test_is_valid():
     assert(is_valid(url3) == True)
     assert(is_valid(url4) == False)
     
-
-test_is_valid()
+if __name__ == "__main__":
+    test_is_valid()
