@@ -5,7 +5,8 @@ from typing import List
 import time
 
 def scraper(url, resp):
-    time.sleep(.5)
+    # Time delay is already built in 
+    # time.sleep(.5)
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
@@ -79,6 +80,11 @@ def is_valid(url):
                 break
         
         if not is_valid_domain:
+            return False
+        
+        #makes sure that it doesn't stay in calendar forever
+        #unsure of how to determine if i should stay on a cal or not?
+        if re.search(r'/day/\d{4}-\d{2}-\d{2}', parsed.path) or 'ical=' in parsed.query or 'outlook-ical=' in parsed.query:
             return False
 
         return not re.match(
