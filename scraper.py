@@ -6,6 +6,11 @@ from typing import List
 #set of all defragmented urls (for q1)
 unique_pages = set()
 
+# word count 
+# made into list because lists are mutable
+longest_word_count: List[int] = [0]
+longest_word_count_url: List[str] = [""]
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     
@@ -32,6 +37,15 @@ def extract_next_links(url, resp) -> List[str]:
     
     soup = Bs(resp.raw_response.content, 'html.parser')
     all_links = []
+
+    # count words (for q2)
+    text = soup.get_text(separator=" ")
+    words = text.split(" ")
+    word_count = len(words)
+
+    if word_count > longest_word_count[0]:
+        longest_word_count[0] = word_count
+        longest_word_count_url[0] = resp.url
 
     links = soup.find_all('a', href=True)
 
@@ -109,7 +123,9 @@ def is_valid(url) -> bool:
 
 def write_report():
     with open("report.txt", "w") as file:
-        file.write(f"Unique pages: {len(unique_pages)}")
+        file.write(f"Unique pages: {len(unique_pages)}\n")
+        file.write(f"Longest word count url: {longest_word_count_url[0]}\n")
+        file.write(f"Longest word count: {longest_word_count[0]}\n")
         
 def test_is_valid():
     url1 = "https://ics.uci.edu/"
