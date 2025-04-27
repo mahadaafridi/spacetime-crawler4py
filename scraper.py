@@ -2,12 +2,17 @@ import re
 from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup as Bs
 from typing import List
-import time
+
+#set of all defragmented urls (for q1)
+unique_pages = set()
 
 def scraper(url, resp):
-    # Time delay is already built in 
-    # time.sleep(.5)
     links = extract_next_links(url, resp)
+    
+    # remove fragment and add to unique set
+    defragmented_url, _ = urldefrag(resp.url)
+    unique_pages.add(defragmented_url)
+    
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp) -> List[str]:
@@ -43,7 +48,7 @@ def extract_next_links(url, resp) -> List[str]:
 
     return all_links
 
-def is_valid(url):
+def is_valid(url) -> bool:
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
@@ -102,6 +107,10 @@ def is_valid(url):
         print ("TypeError for ", parsed)
         raise
 
+def write_report():
+    with open("report.txt", "w") as file:
+        file.write(f"Unique pages: {len(unique_pages)}")
+        
 def test_is_valid():
     url1 = "https://ics.uci.edu/"
     url2 = 'https://ics.uci.edu/research-areas/'
