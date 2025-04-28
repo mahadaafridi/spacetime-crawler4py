@@ -1,3 +1,55 @@
-Unique pages: 0
-Longest word count url: 
-Longest word count: 0
+Unique pages: 19
+Longest word count url: http://www.stat.uci.edu/wp-content/uploads/LorinCrawfordAbstract5-2-19
+Longest word count: 4398
+abstract: 166
+university: 106
+statistics: 94
+obj: 94
+endobj: 94
+endstream: 82
+department: 75
+seminar: 68
+data: 57
+bren: 40
+series: 37
+donald: 34
+news: 33
+statistical: 33
+april: 33
+contact: 32
+may: 32
+seminars: 31
+uci: 30
+bayesian: 30
+school: 28
+sciences: 27
+science: 27
+opportunities: 26
+information: 25
+computer: 25
+faculty: 24
+archive: 24
+directory: 23
+graduate: 23
+current: 23
+degrees: 22
+course: 22
+listings: 22
+uc: 22
+february: 22
+november: 21
+irvine: 21
+october: 21
+january: 20
+models: 20
+research: 19
+modeling: 19
+analysis: 17
+professor: 16
+regression: 15
+ucla: 14
+undergraduate: 13
+center: 13
+march: 13
+Total subdomains: 1
+www.stat.uci.edu: 19

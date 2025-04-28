@@ -14,6 +14,7 @@ longest_word_count: List[int] = [0]
 longest_word_count_url: List[str] = [""]
 
 #all stopwords given to ignore
+# can't use previous assignment tokenization because some of these stopwords use certain punctuation
 stop_words = {
     "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", 
     "are", "aren't", "as", "at", "be", "because", "been", "before", "being", "below", 
@@ -37,12 +38,21 @@ stop_words = {
 
 word_counter: Mapping[str, int] = defaultdict(int)
 
+subdomain_counter: Mapping[str, int] = defaultdict(int)
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     
     # remove fragment and add to unique set
     defragmented_url, _ = urldefrag(resp.url)
-    unique_pages.add(defragmented_url)
+
+    if defragmented_url not in unique_pages:
+        unique_pages.add(defragmented_url)
+        parsed = urlparse(defragmented_url)
+
+        #make sure its in uci.edu domain
+        if parsed.netloc.endswith(".uci.edu"):
+            subdomain_counter[parsed.netloc] += 1
     
     return [link for link in links if is_valid(link)]
 
@@ -77,7 +87,9 @@ def extract_next_links(url, resp) -> List[str]:
     for word in words:
         #get rid of the punctioation like periods and commas
         normalized_word = word.lower().strip(string.punctuation)
-        if normalized_word not in stop_words:
+
+        #make sure only words are added and not junk
+        if normalized_word not in stop_words and word.isalpha():
             word_counter[normalized_word] += 1
 
         
@@ -163,7 +175,13 @@ def write_report():
         file.write(f"Longest word count url: {longest_word_count_url[0]}\n")
         file.write(f"Longest word count: {longest_word_count[0]}\n")
         for word, count in top_50_words:
-            file.write(f"{word}: {count}")       
+            file.write(f"{word}: {count}\n")       
+        
+        file.write(f"Total subdomains: {len(subdomain_counter)}\n")
+
+        for key in sorted(subdomain_counter.keys()):
+            file.write(f"{key}: {subdomain_counter[key]}\n")
+            
 def test_is_valid():
     url1 = "https://ics.uci.edu/"
     url2 = 'https://ics.uci.edu/research-areas/'
