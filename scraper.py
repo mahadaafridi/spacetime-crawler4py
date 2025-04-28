@@ -36,6 +36,8 @@ stop_words = {
     "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
 }
 
+blocked_extensions = ('.pdf', '.jpg', '.jpeg', '.png', '.gif', '.css', '.js', '.zip', '.mp4', '.doc', '.docx', '.ppt', '.pptx', '.md')
+
 word_counter: Mapping[str, int] = defaultdict(int)
 
 subdomain_counter: Mapping[str, int] = defaultdict(int)
@@ -44,7 +46,7 @@ subdomain_counter: Mapping[str, int] = defaultdict(int)
 # some blocked params that appeared in some traps
 #add more later
 blocked_params: List[str]= [
-    'share', 'tab_details', 'tab_files', 'do', 'image', 'ns', 'ical=','outlook-ical=', 'do=media', 'image=' 
+    'share', 'tab_details', 'tab_files', 'do', 'image', 'ns', 'ical','outlook-ical', 'do', 'image' 
 ]
 
 def scraper(url, resp):
@@ -154,10 +156,15 @@ def is_valid(url) -> bool:
         if not is_valid_domain:
             return False
         
+        #block the most common extensions that I found that weren't webpages
+        if parsed.path.lower().endswith(blocked_extensions):
+            return False
         #need to add this to make sure it doesn't get stuck in calendar traps
         if re.search(r'/day/\d{4}-\d{2}-\d{2}', parsed.path):
             return False
-            
+        #another calendar format
+        if re.search(r'/\d{4}-\d{2}', parsed.path):
+            return False
         #based on query parse out the traps and lengths
         if not good_query(parsed.query):
             return False
@@ -172,7 +179,6 @@ def is_valid(url) -> bool:
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
 
-        return True
     except TypeError:
         print ("TypeError for ", parsed)
         raise

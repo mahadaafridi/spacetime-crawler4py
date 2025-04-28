@@ -24,8 +24,7 @@ if __name__ == "__main__":
         parser.add_argument("--config_file", type=str, default="config.ini")
         args = parser.parse_args()
         main(args.config_file, args.restart)
-    except KeyboardInterrupt:
+    except:
         write_report()
-
     write_report()
 
