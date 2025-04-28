@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urldefrag, urljoin
+from urllib.parse import urlparse, urldefrag, urljoin, parse_qs
 from bs4 import BeautifulSoup as Bs
 from typing import List, Mapping
 from collections import defaultdict
@@ -39,6 +39,13 @@ stop_words = {
 word_counter: Mapping[str, int] = defaultdict(int)
 
 subdomain_counter: Mapping[str, int] = defaultdict(int)
+
+
+# some blocked params that appeared in some traps
+#add more later
+blocked_params: List[str]= [
+    'share', 'tab_details', 'tab_files', 'do', 'image', 'ns', 'ical=','outlook-ical=', 'do=media', 'image=' 
+]
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -147,11 +154,10 @@ def is_valid(url) -> bool:
         if not is_valid_domain:
             return False
         
-        #makes sure that it doesn't stay in calendar forever
-        #unsure of how to determine if i should stay on a cal or not?
-        if re.search(r'/day/\d{4}-\d{2}-\d{2}', parsed.path) or 'ical=' in parsed.query or 'outlook-ical=' in parsed.query:
+        #based on query parse out the traps and lengths
+        if not good_query(parsed.query):
             return False
-
+        
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -167,6 +173,18 @@ def is_valid(url) -> bool:
         print ("TypeError for ", parsed)
         raise
 
+def good_query(parsed_query):
+    
+    query_params = parse_qs(parsed_query)
+    for param in blocked_params:
+        if param in query_params:
+            return False
+
+    # really long querys tend to seem to be traps
+    if len(parsed_query) > 100:
+        return False
+    return True
+        
 def write_report():
     top_50_words = sorted(word_counter.items(), key=lambda item: item[1], reverse=True)[:50]
 
