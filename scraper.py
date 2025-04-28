@@ -154,6 +154,10 @@ def is_valid(url) -> bool:
         if not is_valid_domain:
             return False
         
+        #need to add this to make sure it doesn't get stuck in calendar traps
+        if re.search(r'/day/\d{4}-\d{2}-\d{2}', parsed.path):
+            return False
+            
         #based on query parse out the traps and lengths
         if not good_query(parsed.query):
             return False

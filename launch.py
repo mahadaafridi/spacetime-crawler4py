@@ -27,3 +27,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         write_report()
 
+    write_report()
+
