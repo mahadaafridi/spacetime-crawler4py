@@ -1,7 +1,9 @@
 import re
 from urllib.parse import urlparse, urldefrag, urljoin
 from bs4 import BeautifulSoup as Bs
-from typing import List
+from typing import List, Mapping
+from collections import defaultdict
+import string 
 
 #set of all defragmented urls (for q1)
 unique_pages = set()
@@ -10,6 +12,30 @@ unique_pages = set()
 # made into list because lists are mutable
 longest_word_count: List[int] = [0]
 longest_word_count_url: List[str] = [""]
+
+#all stopwords given to ignore
+stop_words = {
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", 
+    "are", "aren't", "as", "at", "be", "because", "been", "before", "being", "below", 
+    "between", "both", "but", "by", "can't", "cannot", "could", "couldn't", "did", 
+    "didn't", "do", "does", "doesn't", "doing", "don't", "down", "during", "each", "few", 
+    "for", "from", "further", "had", "hadn't", "has", "hasn't", "have", "haven't", 
+    "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", 
+    "him", "himself", "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", 
+    "into", "is", "isn't", "it", "it's", "its", "itself", "let's", "me", "more", "most", 
+    "mustn't", "my", "myself", "no", "nor", "not", "of", "off", "on", "once", "only", "or", 
+    "other", "ought", "our", "ours", "ourselves", "out", "over", "own", "same", "shan't", 
+    "she", "she'd", "she'll", "she's", "should", "shouldn't", "so", "some", "such", 
+    "than", "that", "that's", "the", "their", "theirs", "them", "themselves", "then", 
+    "there", "there's", "these", "they", "they'd", "they'll", "they're", "they've", 
+    "this", "those", "through", "to", "too", "under", "until", "up", "very", "was", 
+    "wasn't", "we", "we'd", "we'll", "we're", "we've", "were", "weren't", "what", 
+    "what's", "when", "when's", "where", "where's", "which", "while", "who", "who's", 
+    "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you", "you'd", 
+    "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"
+}
+
+word_counter: Mapping[str, int] = defaultdict(int)
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -40,13 +66,21 @@ def extract_next_links(url, resp) -> List[str]:
 
     # count words (for q2)
     text = soup.get_text(separator=" ")
-    words = text.split(" ")
+    words = text.split()
     word_count = len(words)
 
     if word_count > longest_word_count[0]:
         longest_word_count[0] = word_count
         longest_word_count_url[0] = resp.url
+    
+    #increment the word counter for each word not in stopwords
+    for word in words:
+        #get rid of the punctioation like periods and commas
+        normalized_word = word.lower().strip(string.punctuation)
+        if normalized_word not in stop_words:
+            word_counter[normalized_word] += 1
 
+        
     links = soup.find_all('a', href=True)
 
     for tag in links:
@@ -122,11 +156,14 @@ def is_valid(url) -> bool:
         raise
 
 def write_report():
+    top_50_words = sorted(word_counter.items(), key=lambda item: item[1], reverse=True)[:50]
+
     with open("report.txt", "w") as file:
         file.write(f"Unique pages: {len(unique_pages)}\n")
         file.write(f"Longest word count url: {longest_word_count_url[0]}\n")
         file.write(f"Longest word count: {longest_word_count[0]}\n")
-        
+        for word, count in top_50_words:
+            file.write(f"{word}: {count}")       
 def test_is_valid():
     url1 = "https://ics.uci.edu/"
     url2 = 'https://ics.uci.edu/research-areas/'
