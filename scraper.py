@@ -124,7 +124,8 @@ def is_duplicate(tokens) -> bool:
         if similarity_score >= tau:
             return True
 
-    near_duplicate.append(selected_hashes)    
+    # changed because sets need to have
+    near_duplicate.add(frozenset(selected_hashes))    
     return False
 
     
