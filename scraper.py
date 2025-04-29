@@ -42,6 +42,9 @@ word_counter: Mapping[str, int] = defaultdict(int)
 
 subdomain_counter: Mapping[str, int] = defaultdict(int)
 
+near_duplicate = set()
+
+MAX_SIZE = 1_000_000
 
 # some blocked params that appeared in some traps
 #add more later
@@ -65,6 +68,67 @@ def scraper(url, resp):
     
     return [link for link in links if is_valid(link)]
 
+def tokenize(text: str) -> List[str]:
+    text = text.lower()
+    
+    tokens = re.findall(r'\b[a-zA-Z]{2,}\b', text)
+    return tokens
+
+def custom_hash(s):
+    n = len(s)
+
+    # p is a prime number
+    # m is a large prime number
+    p = 31
+    m = int(1e9 + 7)
+
+    # to store hash value
+    hashVal = 0
+
+    # to store p^i
+    pPow = 1
+
+    # Calculating hash value
+    for i in range(n):
+        hashVal = (hashVal + (ord(s[i]) - ord('a') + 1) * pPow) % m
+        pPow = (pPow * p) % m
+    return hashVal
+
+def is_duplicate(tokens) -> bool:
+    global near_duplicate
+
+    tau = 0.95
+
+    #too small
+    if len(tokens) < 10:
+        return False
+    
+    ngrams = []
+    for i in range(len(tokens) - 2):
+        ngram = ' '.join(tokens[i:i + 3])
+        ngrams.append(ngram)
+
+    ngrams_hash = set()
+    for ngram in ngrams:
+        ngrams_hash.add(custom_hash(ngram))
+
+    selected_hashes = set()
+    for h in ngrams_hash:
+        if h % 4 == 0:
+            selected_hashes.add(h)
+
+    for fingerprint in near_duplicate:
+        intersection = selected_hashes.intersection(fingerprint)
+        union = selected_hashes.union(fingerprint)
+        similarity_score = len(intersection) / len(union) if union else 0.0
+        if similarity_score >= tau:
+            return True
+
+    near_duplicate.append(selected_hashes)    
+    return False
+
+    
+    
 def extract_next_links(url, resp) -> List[str]:
     # Implementation required.
     # url: the URL that was used to get the page
@@ -76,17 +140,41 @@ def extract_next_links(url, resp) -> List[str]:
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
+    all_links = []
+
     if resp.status != 200:
         print(f"error is {resp.error}")
         return []
     
-    soup = Bs(resp.raw_response.content, 'html.parser')
-    all_links = []
+    #if the raw file is too large, don't go through it
+    raw_content = resp.raw_response.content
+    if len(raw_content) > MAX_SIZE:
+        return []
+    
+    soup = Bs(raw_content, 'html.parser')
+    
+    #tokenize content
+    #check is near
+    # return
+    
 
     # count words (for q2)
     text = soup.get_text(separator=" ")
     words = text.split()
     word_count = len(words)
+
+    #if the file it too small, it is not meaningful
+    if word_count < 100:
+        return []
+
+    #file is too large and not enough content in it 
+    if word_count < 300 and len(raw_content) > 500_000:
+        return []
+        
+    
+    tokenized_text = tokenize(text)
+    if is_duplicate(tokenized_text):
+        return []
 
     if word_count > longest_word_count[0]:
         longest_word_count[0] = word_count
