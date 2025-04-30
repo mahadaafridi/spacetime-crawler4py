@@ -75,6 +75,9 @@ def tokenize(text: str) -> List[str]:
     return tokens
 
 def custom_hash(s):
+    """
+    Took this from Geeks for Geeks since we aren't allowed to use a library for the hashing
+    """
     n = len(s)
 
     # p is a prime number
@@ -97,31 +100,39 @@ def custom_hash(s):
 def is_duplicate(tokens) -> bool:
     global near_duplicate
 
-    tau = 0.95
-
+    #lowered this because it seemed to still get some similar pages
+    similarity_treshold = 0.85
+    
+    min_token_count = 10
     #too small
-    if len(tokens) < 10:
+    if len(tokens) < min_token_count:
         return False
     
-    ngrams = []
+    trigrams = []
     for i in range(len(tokens) - 2):
-        ngram = ' '.join(tokens[i:i + 3])
-        ngrams.append(ngram)
+        trigram = ' '.join(tokens[i:i + 3])
+        trigrams.append(trigram)
 
-    ngrams_hash = set()
-    for ngram in ngrams:
-        ngrams_hash.add(custom_hash(ngram))
+    #hash it
+    trigram_hashes = set()
+    for ngram in trigrams:
+        trigram_hashes.add(custom_hash(ngram))
 
+    #select a fingerprint subset 
     selected_hashes = set()
-    for h in ngrams_hash:
+    for h in trigram_hashes:
         if h % 4 == 0:
             selected_hashes.add(h)
 
+    #compare to already existing fingerprints
     for fingerprint in near_duplicate:
         intersection = selected_hashes.intersection(fingerprint)
         union = selected_hashes.union(fingerprint)
-        similarity_score = len(intersection) / len(union) if union else 0.0
-        if similarity_score >= tau:
+        if union:
+            similarity_score = len(intersection) / len(union)
+        else:
+            similarity_score = 0.0
+        if similarity_score >= similarity_treshold:
             return True
 
     # changed because sets need to have
