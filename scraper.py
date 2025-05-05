@@ -44,7 +44,7 @@ subdomain_counter: Mapping[str, int] = defaultdict(int)
 
 near_duplicate = set()
 
-MAX_SIZE = 1_000_000
+MAX_SIZE = 2_000_000
 
 # some blocked params that appeared in some traps
 #add more later
@@ -180,7 +180,7 @@ def extract_next_links(url, resp) -> List[str]:
         return []
 
     #file is too large and not enough content in it 
-    if word_count < 300 and len(raw_content) > 500_000:
+    if word_count < 300 and len(raw_content) > 1_000_000:
         return []
         
     
