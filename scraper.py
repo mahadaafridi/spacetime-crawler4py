@@ -44,7 +44,7 @@ subdomain_counter: Mapping[str, int] = defaultdict(int)
 
 near_duplicate = set()
 
-MAX_SIZE = 2_000_000
+MAX_SIZE = 1_000_000
 
 # some blocked params that appeared in some traps
 #add more later
@@ -100,8 +100,8 @@ def custom_hash(s):
 def is_duplicate(tokens) -> bool:
     global near_duplicate
 
-    #lowered this because it seemed to still get some similar pages
-    similarity_treshold = 0.85
+    #lowered this to be more lenient
+    similarity_treshold = 0.80
     
     min_token_count = 10
     #too small
@@ -180,7 +180,7 @@ def extract_next_links(url, resp) -> List[str]:
         return []
 
     #file is too large and not enough content in it 
-    if word_count < 300 and len(raw_content) > 1_000_000:
+    if word_count < 300 and len(raw_content) > 500_000:
         return []
         
     
