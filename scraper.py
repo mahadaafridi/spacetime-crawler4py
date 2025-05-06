@@ -100,8 +100,8 @@ def custom_hash(s):
 def is_duplicate(tokens) -> bool:
     global near_duplicate
 
-    #lowered this to be more lenient
-    similarity_treshold = 0.80
+    #seemed to perform the best
+    similarity_treshold = 0.85
     
     min_token_count = 10
     #too small
